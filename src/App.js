@@ -4,17 +4,16 @@ import MultiFieldForm from './components/MultiFieldForm'
 import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import LoginForm from './components/LoginForm'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
   const [user, setUser] = useState(null)
   const [message, setMessage] = useState(null)
   const [errorFlag, setErrorFlag] = useState(false)
+  const [loginVisible, setLoginVisible] = useState(false)
+  const [blogsVisible, setBlogsVisible] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -31,9 +30,11 @@ const App = () => {
     }
   }, [])
 
-  const loginUser = async (event) => {
-    event.preventDefault()
-    console.log(`User ${username} login with pw ${password}`)
+  const loginUser = async (userInfo) => {
+    console.log(`User ${userInfo.username} login with pw ${userInfo.password}`)
+
+    const username = userInfo.username
+    const password = userInfo.password
 
     try {
       const user = await loginService.login({
@@ -44,8 +45,6 @@ const App = () => {
       window.localStorage.setItem(
         'loggedInBlogUser', JSON.stringify(user)
       )
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setErrorFlag(true)
       setMessage(
@@ -63,49 +62,6 @@ const App = () => {
     setUser(null)
   }
 
-  const blogFormData = [
-    {
-      label: 'title',
-      value: title,
-      onChange: ({ target }) => setTitle(target.value)
-    },
-    {
-      label: 'author',
-      value: author,
-      onChange: ({ target }) => setAuthor(target.value)
-    },
-    {
-      label: 'url',
-      value: url,
-      onChange: ({ target }) => setUrl(target.value)
-    }
-  ]
-
-  const loginForm = () => (
-    <>
-      <h2>log in to application</h2>
-      <form onSubmit={loginUser}>
-        <div>
-          username
-            <input
-            type="text"
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
-            />
-        </div>
-        <div>
-          password
-            <input
-            type="password"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
-            />
-        </div>
-        <button type="submit">login</button>
-      </form>
-    </>
-  )
-
   const blogRender = () => (
     <>
       <h2>blogs</h2>
@@ -114,7 +70,7 @@ const App = () => {
           <button onClick={logoutUser}>logout</button>
         </p>
 
-        <MultiFieldForm handleNewBlog={handleNewBlog} blogFormData={blogFormData}/>
+        <MultiFieldForm handleNewBlog={handleNewBlog} />
 
         {blogs.map(blog =>
           <Blog key={blog.id} blog={blog} />
@@ -122,15 +78,27 @@ const App = () => {
     </>
   )
 
-  const handleNewBlog = async (event) => {
-    event.preventDefault()
-    console.log('new blog created')
+  const loginForm = () => {
+    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
+    const showWhenVisible = { display: loginVisible ? '' : 'none' }
 
-    const newBlog = {
-      title: title,
-      author: author,
-      url: url
-    }
+    return (
+      <div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setLoginVisible(true)}>log in</button>
+        </div>
+        <div style={showWhenVisible}>
+          <LoginForm
+            loginUser={loginUser}
+          />
+          <button onClick={() => setLoginVisible(false)}>cancel</button>
+        </div>
+      </div>
+    )
+  }
+
+  const handleNewBlog = async (newBlog) => {
+    console.log('new blog created')
 
     try {
       const addedBlog = await blogService.create(newBlog)
@@ -145,9 +113,6 @@ const App = () => {
           setMessage(null)
       }, 5000)
 
-      setTitle('')
-      setAuthor('')
-      setUrl('')
     } catch(error) {
       console.log(error)
       setErrorFlag(true)
@@ -165,6 +130,15 @@ const App = () => {
 
       <Notification message={message} errorFlag={errorFlag}/>
 
+      <Togglable buttonLabel='login'>
+        <LoginForm
+            loginUser={loginUser}
+          />
+      </Togglable>
+
+      <Togglable buttonLabel='new blog'>
+        <MultiFieldForm handleNewBlog={handleNewBlog} />
+      </Togglable>
       {user === null ? loginForm() : blogRender()}
 
     </div>
