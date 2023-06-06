@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import MultiFieldForm from './components/MultiFieldForm'
 import Notification from './components/Notification'
@@ -14,12 +14,13 @@ const App = () => {
   const [errorFlag, setErrorFlag] = useState(false)
   const [loginVisible, setLoginVisible] = useState(false)
   const [blogsVisible, setBlogsVisible] = useState(false)
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
     )  
-  }, [])
+  }, [blogs])
 
   useEffect(() => {
     const loggedInBlogUserJSON = window.localStorage.getItem('loggedInBlogUser')
@@ -70,10 +71,12 @@ const App = () => {
           <button onClick={logoutUser}>logout</button>
         </p>
 
-        <MultiFieldForm handleNewBlog={handleNewBlog} />
+        <Togglable buttonLabel='new blog' ref={blogFormRef}>
+          <MultiFieldForm handleNewBlog={handleNewBlog} />
+        </Togglable>
 
         {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} />
+          <Blog key={blog.id} blog={blog} action={increaseLikes}/>
         )}
     </>
   )
@@ -84,21 +87,19 @@ const App = () => {
 
     return (
       <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={showWhenVisible}>
+        <Togglable buttonLabel='login'>
           <LoginForm
-            loginUser={loginUser}
-          />
-          <button onClick={() => setLoginVisible(false)}>cancel</button>
-        </div>
+              loginUser={loginUser}
+            />
+        </Togglable>
       </div>
     )
   }
 
   const handleNewBlog = async (newBlog) => {
     console.log('new blog created')
+
+    blogFormRef.current.toggleVisibility()
 
     try {
       const addedBlog = await blogService.create(newBlog)
@@ -125,20 +126,27 @@ const App = () => {
     }
   }
 
+  const increaseLikes = async (blog) => {
+    console.log('increasing blog likes!')
+
+    try {
+      console.log(blog)
+
+      const updatedBlog = await blogService.update(blog)
+
+      const newBlogs = blogs.map(b => b.id === blog.id ? {...b, likes: b.likes + 1} : b);
+
+      setBlogs( newBlogs )
+    } catch(error) {
+      console.log(error)
+    }
+  }
+
   return (
     <div>
 
       <Notification message={message} errorFlag={errorFlag}/>
 
-      <Togglable buttonLabel='login'>
-        <LoginForm
-            loginUser={loginUser}
-          />
-      </Togglable>
-
-      <Togglable buttonLabel='new blog'>
-        <MultiFieldForm handleNewBlog={handleNewBlog} />
-      </Togglable>
       {user === null ? loginForm() : blogRender()}
 
     </div>
