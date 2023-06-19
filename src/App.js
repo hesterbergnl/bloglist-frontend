@@ -12,14 +12,18 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [message, setMessage] = useState(null)
   const [errorFlag, setErrorFlag] = useState(false)
-  const [loginVisible, setLoginVisible] = useState(false)
-  const [blogsVisible, setBlogsVisible] = useState(false)
   const blogFormRef = useRef()
 
+  const compareLikes = (a, b) => {
+    return b.likes - a.likes
+  }
+
   useEffect(() => {
+
     blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )  
+      setBlogs( blogs.sort(compareLikes) )
+    )
+
   }, [blogs])
 
   useEffect(() => {
@@ -76,15 +80,12 @@ const App = () => {
         </Togglable>
 
         {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} action={increaseLikes}/>
+          <Blog key={blog.id} blog={blog} action={increaseLikes} user={user} deleteAction={deleteBlog}/>
         )}
     </>
   )
 
   const loginForm = () => {
-    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
-    const showWhenVisible = { display: loginVisible ? '' : 'none' }
-
     return (
       <div>
         <Togglable buttonLabel='login'>
@@ -103,8 +104,6 @@ const App = () => {
 
     try {
       const addedBlog = await blogService.create(newBlog)
-
-      setBlogs( blogs.concat(addedBlog) )
 
       setErrorFlag(false)
       setMessage(
@@ -132,12 +131,21 @@ const App = () => {
     try {
       console.log(blog)
 
-      const updatedBlog = await blogService.update(blog)
+      await blogService.update(blog)
 
-      const newBlogs = blogs.map(b => b.id === blog.id ? {...b, likes: b.likes + 1} : b);
-
-      setBlogs( newBlogs )
     } catch(error) {
+      console.log(error)
+    }
+  }
+
+  const deleteBlog = async (blog) => {
+
+    try {
+      console.log('deleting', blog)
+
+        await blogService.remove(blog)
+
+    } catch( error ) {
       console.log(error)
     }
   }
