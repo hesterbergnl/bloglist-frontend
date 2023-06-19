@@ -1,9 +1,9 @@
 import { useState } from 'react'
 
-const Blog = ({blog, action, user, deleteAction}) => {
+const Blog = ({ blog, action, user, deleteAction }) => {
   const [visible, setVisible] = useState(false)
 
-  const showWhenVisible = {display: visible ? '' : 'none' }
+  const showWhenVisible = { display: visible ? '' : 'none' }
 
   const blogStyle = {
     paddingTop: 10,

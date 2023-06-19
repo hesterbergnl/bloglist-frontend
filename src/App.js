@@ -53,10 +53,10 @@ const App = () => {
     } catch (exception) {
       setErrorFlag(true)
       setMessage(
-        `Wrong username or password`
+        'Wrong username or password'
       )
       setTimeout(() => {
-          setMessage(null)
+        setMessage(null)
       }, 5000)
     }
   }
@@ -70,18 +70,19 @@ const App = () => {
   const blogRender = () => (
     <>
       <h2>blogs</h2>
-        <p>
-          { user.name } logged in
-          <button onClick={logoutUser}>logout</button>
-        </p>
 
-        <Togglable buttonLabel='new blog' ref={blogFormRef}>
-          <MultiFieldForm handleNewBlog={handleNewBlog} />
-        </Togglable>
+      <p>
+        { user.name } logged in
+        <button onClick={logoutUser}>logout</button>
+      </p>
 
-        {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} action={increaseLikes} user={user} deleteAction={deleteBlog}/>
-        )}
+      <Togglable buttonLabel='new blog' ref={blogFormRef}>
+        <MultiFieldForm handleNewBlog={handleNewBlog} />
+      </Togglable>
+
+      {blogs.map(blog =>
+        <Blog key={blog.id} blog={blog} action={increaseLikes} user={user} deleteAction={deleteBlog}/>
+      )}
     </>
   )
 
@@ -90,8 +91,8 @@ const App = () => {
       <div>
         <Togglable buttonLabel='login'>
           <LoginForm
-              loginUser={loginUser}
-            />
+            loginUser={loginUser}
+          />
         </Togglable>
       </div>
     )
@@ -110,7 +111,7 @@ const App = () => {
         `A new blog ${addedBlog.title} by ${addedBlog.author} added!`
       )
       setTimeout(() => {
-          setMessage(null)
+        setMessage(null)
       }, 5000)
 
     } catch(error) {
@@ -120,7 +121,7 @@ const App = () => {
         `${error.response.data.toString()}`
       )
       setTimeout(() => {
-          setMessage(null)
+        setMessage(null)
       }, 5000)
     }
   }
@@ -143,7 +144,7 @@ const App = () => {
     try {
       console.log('deleting', blog)
 
-        await blogService.remove(blog)
+      await blogService.remove(blog)
 
     } catch( error ) {
       console.log(error)
